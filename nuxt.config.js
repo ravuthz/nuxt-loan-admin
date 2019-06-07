@@ -1,8 +1,10 @@
+require('dotenv').config()
+
 import VuetifyLoaderPlugin from 'vuetify-loader/lib/plugin'
 import pkg from './package'
 
 export default {
-  mode: 'universal',
+  mode: 'spa',
 
   /*
   ** Headers of the page
@@ -47,7 +49,46 @@ export default {
   ** Nuxt.js modules
   */
   modules: [
+    '@nuxtjs/axios',
+    '@nuxtjs/auth'
   ],
+
+  axios: {
+    baseURL: process.env.API_URL || 'http://localhost:3001/',
+    redirectError: {
+      401: '/login',
+      404: '/notfound'
+    }
+  },
+
+  auth: {
+    strategies: {
+      local: {
+        endpoints: {
+          user: { url: '/api/user', method: 'get', propertyName: 'data' },
+          login: { url: '/api/login', method: 'post', propertyName: 'access_token' },
+          logout: { url: '/api/logout', method: 'post' },
+          tokenRequired: true,
+          tokenType: 'Bearer'
+        },
+        // endpoints: {
+        //   user: { url: '/api/user', method: 'get', propertyName: 'data' },
+        //   login: { url: '/api/login', method: 'post', propertyName: 'token' },
+        //   logout: { url: '/api/logout', method: 'post' },
+        // }
+      }
+    }
+  },
+
+  router: {
+    extendRoutes(routes) {
+      // routes = routes.filter(route => route.name !== 'auth-login');
+      routes.push({ name: 'login', path: '/login', component: '~/pages/auth/login.vue' })
+      console.log('routes: ', routes);
+    },
+    // Add global auth middleware for all routes
+    middleware: ['auth']
+  },
 
   /*
   ** Build configuration
